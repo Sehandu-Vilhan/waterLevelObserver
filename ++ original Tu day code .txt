@@ -1,0 +1,176 @@
+
+import javax.swing.*;
+import java.util.*;
+import java.awt.*;
+import javax.swing.border.*;
+
+
+
+class Demo {
+    public static void main(String[] args) {
+
+
+      
+			JFrame frame = new JFrame("Water Level Observer");
+			
+				JSlider slider = new JSlider(JSlider.VERTICAL, 0, 100, 0);
+				slider.setBorder(new EmptyBorder(10, 50, 10, 10));
+				frame.add(BorderLayout.WEST, slider);      
+			  
+			
+			
+				JPanel panel = new JPanel(new GridLayout(2, 2, 10, 10));
+					JPanel waterCard = new JPanel();
+							JLabel display1 = new JLabel("Water Level: ");
+							JButton button1 = new JButton("Veiw Detail");
+							
+					JPanel alamCard = new JPanel();
+							JLabel display2 = new JLabel("Alarm: OFF");
+							JButton button2 = new JButton("Veiw Detail");
+							
+					JPanel damCard = new JPanel();
+							JLabel display3 = new JLabel("Splitter: OFF");
+							JButton button3 = new JButton("Veiw Detail");
+							
+					JPanel smsCard = new JPanel();
+							JLabel display4 = new JLabel("SMS: Waiting");
+							JButton button4 = new JButton("Veiw Detail");
+
+
+        // ++++++++++  buttons underneath the labels
+
+        waterCard.setLayout(new BorderLayout(10, 10));
+        waterCard.add(display1, BorderLayout.CENTER);
+        waterCard.add(button1, BorderLayout.SOUTH);
+
+        alamCard.setLayout(new BorderLayout(10, 10));
+        alamCard.add(display2, BorderLayout.CENTER);
+        alamCard.add(button2, BorderLayout.SOUTH);
+
+        damCard.setLayout(new BorderLayout(10, 10));
+        damCard.add(display3, BorderLayout.CENTER);
+        damCard.add(button3, BorderLayout.SOUTH);
+
+        smsCard.setLayout(new BorderLayout(10, 10));
+        smsCard.add(display4, BorderLayout.CENTER);
+        smsCard.add(button4, BorderLayout.SOUTH);
+
+
+
+        panel.add(waterCard);
+        panel.add(alamCard);
+        panel.add(damCard);
+        panel.add(smsCard);
+
+
+        frame.add(panel);
+
+
+        // ++++++++++  Button click actions
+
+        button1.addActionListener(e -> {
+            showDetail("Water Level Details",
+                "Displays the current water level.");
+        });
+
+        button2.addActionListener(e -> {
+            showDetail("Alarm Details",
+                "The alarm turns ON when water level is above 60.");
+        });
+
+        button3.addActionListener(e -> {
+            showDetail("Dam Details",
+                "The dam opens when water level is above 75.");
+        });
+
+        button4.addActionListener(e -> {
+            showDetail("SMS Details",
+                "Displays a message based on the current water level.");
+        });
+
+
+        ControlRoom controlRoom = new ControlRoom();
+        controlRoom.addWaterLevelObserver(new WaterLevelObserver() {
+            public void update(int waterLevel) {
+				
+				
+                display1.setText("Water Level: " + waterLevel);
+             	display1.setBorder(BorderFactory.createCompoundBorder(
+				BorderFactory.createLineBorder(Color.BLACK),
+				BorderFactory.createEmptyBorder(10, 50, 10, 10)
+			));
+
+                display2.setText(waterLevel > 60 ? "Alarm: ON" : "Alarm: OFF");
+                display2.setBorder(BorderFactory.createCompoundBorder(
+				BorderFactory.createLineBorder(Color.BLACK),
+				BorderFactory.createEmptyBorder(10, 50, 10, 10)
+			));
+ 
+                display3.setText(waterLevel > 75 ? "Dam: Open" : "Dam: Close");
+				display3.setBorder(BorderFactory.createCompoundBorder(
+				BorderFactory.createLineBorder(Color.BLACK),
+				BorderFactory.createEmptyBorder(10, 50, 10, 10)
+			));
+                
+                
+                
+                SMSSender sms = new SMSSender();
+                display4.setText(sms.getMessage (waterLevel));
+                display4.setBorder(BorderFactory.createCompoundBorder(
+				BorderFactory.createLineBorder(Color.BLACK),
+				BorderFactory.createEmptyBorder(10, 50, 10, 10)
+			));
+                
+                
+            }
+        });
+
+        slider.addChangeListener(e -> {
+            controlRoom.setWaterLevel(slider.getValue());
+        });
+
+        frame.setSize(400, 300);
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setLocationRelativeTo(null);
+        frame.setVisible(true);
+    }
+
+
+    // ++++++++++  open a separate detail window
+
+    static void showDetail(String title, String message) {
+        JFrame detailFrame = new JFrame(title);
+
+        JLabel detailLabel = new JLabel(
+            "<html><div style='width:250px;'>"
+            + message +
+            "</div></html>"
+        );
+
+        detailLabel.setBorder(
+            BorderFactory.createEmptyBorder(20, 20, 20, 20)
+        );
+
+        detailFrame.add(detailLabel);
+        detailFrame.setSize(350, 200);
+        detailFrame.setLocationRelativeTo(null);
+        detailFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        detailFrame.setVisible(true);
+    }
+}
+
+
+class SMSSender extends WaterLevelObserver{
+	public String getMessage(int waterLevel){
+		
+		if (waterLevel > 75){
+			// return "IMMEDIATE ACTIONS REQUIRED:\nEvacuate Low-Lying Areas:";
+			 return "<html>IMMEDIATE ACTIONS REQUIRED:<br>Evacuate Low-Lying Areas:</html>";
+	 } else if( waterLevel > 60)
+			{return "Water level are Rising";
+	}else{
+		 return "Normal";
+		 }
+	}
+}
+
